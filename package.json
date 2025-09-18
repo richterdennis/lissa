@@ -1,0 +1,72 @@
+{
+  "name": "lissa",
+  "version": "0.0.0",
+  "description": "A lightweight, extensible HTTP client for modern JavaScript applications with fluent api syntax, hooks, plugins and more.",
+  "main": "./lib/index.js",
+  "types": "./lib/index.d.ts",
+  "type": "module",
+  "scripts": {
+    "start": "npm run dev",
+    "dev": "nodemon examples/index.js --exec \"npm run lint && node\"",
+    "dev:inspect": "nodemon --inspect-brk examples/index.js",
+    "lint": "eslint .",
+    "lint:fix": "npm run lint -- --fix",
+    "pub": "node scripts/publish.js",
+    "pub:patch": "npm version patch",
+    "pub:feature": "npm version minor",
+    "preversion": "npm run lint",
+    "postversion": "git push && git push --tags"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/richterdennis/lissa.git"
+  },
+  "keywords": [
+    "http",
+    "https",
+    "request",
+    "client",
+    "fetch",
+    "api",
+    "rest",
+    "ajax",
+    "xhr",
+    "promise",
+    "async",
+    "await",
+    "fluent",
+    "plugin",
+    "retry",
+    "dedupe",
+    "deduplication",
+    "upload",
+    "download",
+    "progress",
+    "timeout",
+    "abort",
+    "browser",
+    "node",
+    "universal",
+    "typescript",
+    "lightweight",
+    "zero-dependencies",
+    "modular",
+    "extensible"
+  ],
+  "author": "Dennis Richter <lissa@richterdennis.de>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/richterdennis/lissa/issues"
+  },
+  "homepage": "https://github.com/richterdennis/lissa#readme",
+  "devDependencies": {
+    "@eslint/js": "9.34.0",
+    "@stylistic/eslint-plugin": "5.3.1",
+    "eslint": "9.34.0",
+    "express": "^5.1.0",
+    "globals": "^16.3.0",
+    "lissa": "file:",
+    "nodemon": "^3.1.10",
+    "prompts": "^2.4.2"
+  }
+}

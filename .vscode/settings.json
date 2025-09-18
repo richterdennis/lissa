@@ -1,0 +1,25 @@
+{
+	"editor.detectIndentation": true,
+	"editor.useTabStops": true,
+	"editor.insertSpaces": false,
+	"editor.formatOnSave": true,
+	"files.insertFinalNewline": true,
+	"files.trimTrailingWhitespace": true,
+	"files.trimFinalNewlines": true,
+	"eslint.enable": true,
+	"editor.codeActionsOnSave": {
+		"source.fixAll.eslint": "explicit"
+	},
+	"javascript.preferences.quoteStyle": "single",
+	"[javascript]": {
+		"editor.formatOnSave": false
+	},
+	"typescript.validate.enable": true,
+	"search.exclude": {
+		"package-lock.json": true
+	},
+	"cSpell.words": [
+		"lissa"
+	],
+	"kiroAgent.configureMCP": "Disabled"
+}
