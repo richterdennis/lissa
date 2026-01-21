@@ -4,39 +4,39 @@ import { RequestInit, HeadersInit, BodyInit, Headers } from 'undici-types';
  * General json typing
  */
 
-type JsonPrimitive = null | string | number | boolean;
+export type JsonPrimitive = null | string | number | boolean;
 
-type JsonObject = {
+export type JsonObject = {
 	[key: string]: Json;
 };
 
-type JsonArray = Json[];
+export type JsonArray = Json[];
 
-type Json = JsonPrimitive | JsonObject | JsonArray;
+export type Json = JsonPrimitive | JsonObject | JsonArray;
 
 /*
  * Param typing (like json but it supports dates if paramsSerializer is set to extended mode)
  */
 
-type ParamPrimitive = null | string | number | bigint | boolean | Date;
+export type ParamPrimitive = null | string | number | bigint | boolean | Date;
 
-type ParamObject = {
+export type ParamObject = {
 	[key: string]: ParamValue;
 };
 
-type ParamArray = ParamValue[];
+export type ParamArray = ParamValue[];
 
-type ParamValue = ParamPrimitive | ParamObject | ParamArray;
+export type ParamValue = ParamPrimitive | ParamObject | ParamArray;
 
-type Params = ParamObject;
+export type Params = ParamObject;
 
 /*
  * Input and output types
  */
 
-type HttpMethod = 'get' | 'post' | 'put' | 'patch' | 'delete' | (string & {});
+export type HttpMethod = 'get' | 'post' | 'put' | 'patch' | 'delete' | (string & {});
 
-type LissaOptionsInit = Omit<RequestInit, 'method' | 'body'> & {
+export type LissaOptionsInit = Omit<RequestInit, 'method' | 'body'> & {
 	adapter?: 'fetch' | 'xhr';
 	baseURL?: string;
 	url?: string;
@@ -52,12 +52,12 @@ type LissaOptionsInit = Omit<RequestInit, 'method' | 'body'> & {
 	body?: BodyInit | JsonObject;
 };
 
-type LissaOptions = Omit<LissaOptionsInit, 'headers'> & {
+export type LissaOptions = Omit<LissaOptionsInit, 'headers'> & {
 	headers: Headers
 	params: Params;
 };
 
-type DefaultOptionsInit = LissaOptionsInit & {
+export type DefaultOptionsInit = LissaOptionsInit & {
 	get?: LissaOptionsInit;
 	post?: LissaOptionsInit;
 	put?: LissaOptionsInit;
@@ -65,7 +65,7 @@ type DefaultOptionsInit = LissaOptionsInit & {
 	delete?: LissaOptionsInit;
 };
 
-type DefaultOptions = LissaOptions & {
+export type DefaultOptions = LissaOptions & {
 	get: LissaOptions;
 	post: LissaOptions;
 	put: LissaOptions;
@@ -73,12 +73,12 @@ type DefaultOptions = LissaOptions & {
 	delete: LissaOptions;
 };
 
-type FetchArguments = {
+export type FetchArguments = {
 	url: URL,
 	options: Omit<RequestInit, 'headers'> & { headers: Headers },
 };
 
-type LissaResult = {
+export type LissaResult = {
 	options: LissaOptions;
 	request: FetchArguments;
 	response: Response;
@@ -87,18 +87,18 @@ type LissaResult = {
 	data: null | string | Json | File | ReadableStream | Blob;
 };
 
-type GeneralErrorResponse = Error & {
+export type GeneralErrorResponse = Error & {
 	options: LissaOptions;
 	request: FetchArguments;
 };
 
-type ResultValue = LissaResult | Exclude<any, undefined>;
+export type ResultValue = LissaResult | Exclude<any, undefined>;
 
 /*
  * Interfaces
  */
 
-declare class LissaRequest extends Promise<ResultValue> {
+export declare class LissaRequest extends Promise<ResultValue> {
 	readonly options: LissaOptions;
 
 	/**
@@ -293,9 +293,9 @@ interface MakeRequest {
 	): LissaRequest;
 }
 
-type Plugin = (lissa: Lissa) => void;
+export type Plugin = (lissa: Lissa) => void;
 
-interface Lissa extends MakeRequest {
+export interface Lissa extends MakeRequest {
 	/**
 	 * Modify the base options directly.
 	 *
@@ -419,12 +419,12 @@ export declare class ResponseError extends Error {
  */
 export declare const retry: (options: RetryOptions) => Plugin;
 
-type CustomRetryError = {
+export type CustomRetryError = {
 	/** custom retry type have to be returned by shouldRetry hook */
 	[K in `on${string}`]: number;
 };
 
-type RetryOptions = CustomRetryError & {
+export type RetryOptions = CustomRetryError & {
 	onConnectionError: number;
 	onGatewayError: number;
 	on429: number;
@@ -480,7 +480,7 @@ type RetryOptions = CustomRetryError & {
  */
 export declare const dedupe: (options: DedupeOptions) => Plugin;
 
-type DedupeOptions = {
+export type DedupeOptions = {
 	/**
 	 * Which request methods should be deduped. Defaults to "get"
 	 */
