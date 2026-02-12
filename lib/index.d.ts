@@ -417,7 +417,7 @@ export declare class ResponseError extends Error {
  *
  * Retry requests on connection errors or server errors
  */
-export declare const retry: (options: RetryOptions) => Plugin;
+export declare const retry: (options?: RetryOptions) => Plugin;
 
 export type CustomRetryError = {
 	/** custom retry type have to be returned by shouldRetry hook */
@@ -425,10 +425,10 @@ export type CustomRetryError = {
 };
 
 export type RetryOptions = CustomRetryError & {
-	onConnectionError: number;
-	onGatewayError: number;
-	on429: number;
-	onServerError: number;
+	onConnectionError?: number;
+	onGatewayError?: number;
+	on429?: number;
+	onServerError?: number;
 
 	/**
 	 * Decide if the occurred error should trigger a retry.
@@ -439,38 +439,38 @@ export type RetryOptions = CustomRetryError & {
 	 * maximum retries can be configured as `on${errorType}`. Return "CustomError"
 	 * and define the retries as { onCustomError: 3 }
 	 */
-	shouldRetry(
+	shouldRetry?: (
 		errorType: void | 'ConnectionError' | 'GatewayError' | '429' | 'ServerError',
 		error: ResponseError | ConnectionError | GeneralErrorResponse,
-	): void | false | string;
+	) => void | false | string;
 
 	/**
 	 * Hook into the retry logic after the retry is triggered and before the delay
 	 * is awaited. Use beforeRetry e. g. if you want to change how long the delay
 	 * should be or to notify a customer that the connection is lost.
 	 */
-	beforeRetry(
+	beforeRetry?: (
 		retry: { attempt: number, delay: number },
 		error: ResponseError | ConnectionError | GeneralErrorResponse,
-	): void | { attempt: number, delay: number };
+	) => void | { attempt: number, delay: number };
 
 	/**
 	 * Hook into the retry logic after the delay is awaited and before the request
 	 * gets resend. Use onRetry e. g. if you want to log that a retry is running now
 	 */
-	onRetry(
+	onRetry?: (
 		retry: { attempt: number, delay: number },
 		error: ResponseError | ConnectionError | GeneralErrorResponse,
-	): void;
+	) => void;
 
 	/**
 	 * Hook into the retry logic after a request was successful. Use onSuccess
 	 * e. g. if you want to dismiss a connection lost notification
 	 */
-	onSuccess(
+	onSuccess?: (
 		retry: { attempt: number, delay: number },
 		res: ResultValue,
-	): void;
+	) => void;
 };
 
 /**
@@ -478,26 +478,26 @@ export type RetryOptions = CustomRetryError & {
  *
  * Aborts leading or trailing requests to the same endpoint (depends on configured strategy [default is leading])
  */
-export declare const dedupe: (options: DedupeOptions) => Plugin;
+export declare const dedupe: (options?: DedupeOptions) => Plugin;
 
 export type DedupeOptions = {
 	/**
 	 * Which request methods should be deduped. Defaults to "get"
 	 */
-	methods: HttpMethod[];
+	methods?: HttpMethod[];
 
 	/**
 	 * How to build the endpoint identifier. Defaults to url + method.
 	 * Return false to skip dedupe logic.
 	 */
-	getIdentifier: (options: LissaOptions) => any;
+	getIdentifier?: (options: LissaOptions) => any;
 
 	/**
 	 * Define default strategy. Abort leading requests on new request or abort
 	 * trailing new requests until first finishes. Can be also configured
 	 * individually by adding a dedupe param to the request options.
 	 */
-	defaultStrategy: 'leading' | 'trailing';
+	defaultStrategy?: 'leading' | 'trailing';
 };
 
 // Named exports are also params of the default export
