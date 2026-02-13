@@ -421,14 +421,14 @@ export declare const retry: (options?: RetryOptions) => Plugin;
 
 export type CustomRetryError = {
 	/** custom retry type have to be returned by shouldRetry hook */
-	[K in `on${string}`]: number;
+	[K in `@${string}`]: number;
 };
 
 export type RetryOptions = CustomRetryError & {
-	onConnectionError?: number;
-	onGatewayError?: number;
-	on429?: number;
-	onServerError?: number;
+	'@ConnectionError'?: number;
+	'@GatewayError'?: number;
+	'@429'?: number;
+	'@ServerError'?: number;
 
 	/**
 	 * Decide if the occurred error should trigger a retry.
@@ -436,8 +436,9 @@ export type RetryOptions = CustomRetryError & {
 	 * The given errorType helps preselecting error types. Return false to not
 	 * trigger a retry. Return nothing if the given errorType is correct. Return
 	 * a string to redefine the errorType or use a custom one. The number of
-	 * maximum retries can be configured as `on${errorType}`. Return "CustomError"
-	 * and define the retries as { onCustomError: 3 }
+	 * maximum retries can be configured as `on${errorType}` or `@${errorType}`.
+	 * Return "CustomError" and define the retries as { onCustomError: 3 } or
+	 * as { '@CustomError': 3 }.
 	 */
 	shouldRetry?: (
 		errorType: void | 'ConnectionError' | 'GatewayError' | '429' | 'ServerError',

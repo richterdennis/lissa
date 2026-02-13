@@ -478,8 +478,9 @@ Decide if the occurred error should trigger a retry.
 The given errorType helps preselecting error types. Return false to not
 trigger a retry. Return nothing if the given errorType is correct. Return
 a string to redefine the errorType or use a custom one. The number of
-maximum retries can be configured as `on${errorType}`. Return "CustomError"
-and define the retries as { onCustomError: 3 }
+maximum retries can be configured as `on${errorType}` or `@${errorType}`.
+Return "CustomError" and define the retries as { onCustomError: 3 } or
+as { '@CustomError': 3 }.
 
 ```js
 Lissa.retry({
