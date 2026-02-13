@@ -1,6 +1,6 @@
 {
   "name": "lissa",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "A lightweight, extensible HTTP client for modern JavaScript applications with fluent api syntax, hooks, plugins and more.",
   "main": "./lib/index.js",
   "types": "./lib/index.d.ts",
