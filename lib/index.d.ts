@@ -317,14 +317,14 @@ export interface Lissa extends MakeRequest {
 	 *
 	 * Modify the given options as argument or return a new options object.
 	 */
-	beforeRequest(hook: (options: LissaOptions) => void | LissaOptions): Lissa;
+	beforeRequest(hook: (options: LissaOptions) => void | LissaOptions | Promise<void | LissaOptions>): Lissa;
 
 	/**
 	 * Add a beforeFetch hook into the request cycle.
 	 *
 	 * Modify the actual fetch arguments or return new arguments.
 	 */
-	beforeFetch(hook: (request: FetchArguments) => void | FetchArguments): Lissa;
+	beforeFetch(hook: (request: FetchArguments) => void | FetchArguments | Promise<void | FetchArguments>): Lissa;
 
 	/**
 	 * Add an onResponse hook into the request cycle.
@@ -333,7 +333,7 @@ export interface Lissa extends MakeRequest {
 	 * stop looping over existing hooks and instantly returns this value (if it
 	 * is an instance of Error it will get thrown).
 	 */
-	onResponse(hook: (result: LissaResult) => void | Exclude<any, undefined>): Lissa;
+	onResponse(hook: (result: LissaResult) => void | Exclude<any, undefined> | Promise<void | Exclude<any, undefined>>): Lissa;
 
 	/**
 	 * Add an onError hook into the request cycle.
@@ -342,7 +342,7 @@ export interface Lissa extends MakeRequest {
 	 * over existing hooks and instantly returns this value (if it is an instance
 	 * of Error it will get thrown).
 	 */
-	onError(hook: (error: ResponseError | ConnectionError | GeneralErrorResponse) => void | Exclude<any, undefined>): Lissa;
+	onError(hook: (error: ResponseError | ConnectionError | GeneralErrorResponse) => void | Exclude<any, undefined> | Promise<void | Exclude<any, undefined>>): Lissa;
 
 	/**
 	 * Copy the current instance with all its options and hooks.
