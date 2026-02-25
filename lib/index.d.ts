@@ -6,13 +6,20 @@ import { RequestInit, HeadersInit, BodyInit, Headers } from 'undici-types';
 
 export type JsonPrimitive = null | string | number | boolean;
 
-export type JsonObject = {
-	[key: string]: Json;
-};
+export type JsonObject = Record<string, Json>;
 
 export type JsonArray = Json[];
 
 export type Json = JsonPrimitive | JsonObject | JsonArray;
+
+
+export type JsonStringifyablePrimitive = null | undefined | string | number | boolean;
+
+export type JsonStringifyableObject = Record<string, JsonStringifyable>;
+
+export type JsonStringifyableArray = JsonStringifyable[];
+
+export type JsonStringifyable = JsonStringifyablePrimitive | JsonStringifyableObject | JsonStringifyableArray | { toJSON(): JsonStringifyable };
 
 /*
  * Param typing (like json but it supports dates if paramsSerializer is set to extended mode)
@@ -49,7 +56,7 @@ export type LissaOptionsInit = Omit<RequestInit, 'method' | 'body'> & {
 	timeout?: number;
 	onUploadProgress?: (uploaded: number, total: number) => void;
 	onDownloadProgress?: (downloaded: number, total: number) => void;
-	body?: BodyInit | JsonObject;
+	body?: BodyInit | JsonStringifyableObject;
 };
 
 export type LissaOptions = Omit<LissaOptionsInit, 'headers'> & {
@@ -140,7 +147,7 @@ export declare class LissaRequest extends Promise<ResultValue> {
 	 *
 	 * The body gets json stringified if it is a plain object
 	 */
-	body(body: BodyInit | JsonObject): LissaRequest;
+	body(body: BodyInit | JsonStringifyableObject): LissaRequest;
 
 	/**
 	 * Set request timeout in milliseconds
@@ -207,7 +214,7 @@ interface MakeRequest {
 	 */
 	post(
 		url?: string,
-		body?: BodyInit | JsonObject,
+		body?: BodyInit | JsonStringifyableObject,
 		options?: Omit<LissaOptionsInit, 'method' | 'url' | 'body'>
 	): LissaRequest;
 
@@ -216,7 +223,7 @@ interface MakeRequest {
 	 */
 	put(
 		url?: string,
-		body?: BodyInit | JsonObject,
+		body?: BodyInit | JsonStringifyableObject,
 		options?: Omit<LissaOptionsInit, 'method' | 'url' | 'body'>
 	): LissaRequest;
 
@@ -225,7 +232,7 @@ interface MakeRequest {
 	 */
 	patch(
 		url?: string,
-		body?: BodyInit | JsonObject,
+		body?: BodyInit | JsonStringifyableObject,
 		options?: Omit<LissaOptionsInit, 'method' | 'url' | 'body'>
 	): LissaRequest;
 
