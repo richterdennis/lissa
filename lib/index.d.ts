@@ -94,10 +94,53 @@ export type LissaResult = {
 	data: null | string | Json | File | ReadableStream | Blob;
 };
 
-export type GeneralErrorResponse = Error & {
+
+export interface TypeError extends Error {
+	name: 'TypeError';
+}
+
+export interface TimeoutError extends DOMException {
+	name: 'TimeoutError';
+}
+
+export interface AbortError extends DOMException {
+	name: 'AbortError';
+}
+
+export type GeneralErrorResponse = (TimeoutError | AbortError) & {
 	options: LissaOptions;
 	request: FetchArguments;
 };
+
+
+/**
+ * ConnectionError class for instance checking
+ *
+ * Will get thrown if a network-level error occurs (e.g. DNS resolution, connection lost)
+ */
+export declare class ConnectionError extends Error {
+	name: 'ConnectionError';
+	options: LissaOptions;
+	request: FetchArguments;
+}
+
+/**
+ * ResponseError class for instance checking
+ *
+ * Will get thrown when the server responds with a status code that indicates a failure (non-2xx status)
+ */
+export declare class ResponseError extends Error {
+	name: 'ResponseError';
+	options: LissaOptions;
+	request: FetchArguments;
+	response: Response;
+	headers: Headers;
+	status: number;
+	data: null | string | Json | ReadableStream;
+}
+
+export type ExpectedError = GeneralErrorResponse | ConnectionError | ResponseError;
+export type ThrownError = TypeError | ExpectedError;
 
 export type ResultValue = LissaResult | Exclude<any, undefined>;
 
@@ -178,23 +221,37 @@ export declare class LissaRequest extends Promise<ResultValue> {
 
 	readonly status: 'pending' | 'fulfilled' | 'rejected';
 	readonly value: void | ResultValue;
-	readonly reason: void | Error;
+	readonly reason: void | ThrownError;
 
 	on(
-		event: 'resolve' | 'reject' | 'settle',
-		listener: (arg: ResultValue | Error | {
-			status: 'fulfilled' | 'rejected',
-			value: void | ResultValue,
-			reason: void | Error,
+		event: 'resolve',
+		listener: (arg: ResultValue) => void,
+	): LissaRequest;
+
+	on(
+		event: 'reject',
+		listener: (arg: ThrownError) => void,
+	): LissaRequest;
+
+	on(
+		event: 'settle',
+		listener: (arg: {
+			status: 'fulfilled',
+			value: ResultValue,
+			reason: void,
+		} | {
+			status: 'rejected',
+			value: void,
+			reason: ThrownError,
 		}) => void,
 	): LissaRequest;
 
 	off(
 		event: 'resolve' | 'reject' | 'settle',
-		listener: (arg: ResultValue | Error | {
+		listener: (arg: ResultValue | ThrownError | {
 			status: 'fulfilled' | 'rejected',
 			value: void | ResultValue,
-			reason: void | Error,
+			reason: void | ThrownError,
 		}) => void,
 	): LissaRequest;
 }
@@ -349,7 +406,7 @@ export interface Lissa extends MakeRequest {
 	 * over existing hooks and instantly returns this value (if it is an instance
 	 * of Error it will get thrown).
 	 */
-	onError(hook: (error: ResponseError | ConnectionError | GeneralErrorResponse) => void | Exclude<any, undefined> | Promise<void | Exclude<any, undefined>>): Lissa;
+	onError(hook: (error: ExpectedError) => void | Exclude<any, undefined> | Promise<void | Exclude<any, undefined>>): Lissa;
 
 	/**
 	 * Copy the current instance with all its options and hooks.
@@ -392,33 +449,6 @@ export default LissaLib;
  */
 export declare const defaults: DefaultOptions;
 
-
-/**
- * ConnectionError class for instance checking
- *
- * Will get thrown if a network-level error occurs (e.g. DNS resolution, connection lost)
- */
-export declare class ConnectionError extends Error {
-	name: 'ConnectionError';
-	options: LissaOptions;
-	request: FetchArguments;
-}
-
-/**
- * ResponseError class for instance checking
- *
- * Will get thrown when the server responds with a status code that indicates a failure (non-2xx status)
- */
-export declare class ResponseError extends Error {
-	name: 'ResponseError';
-	options: LissaOptions;
-	request: FetchArguments;
-	response: Response;
-	headers: Headers;
-	status: number;
-	data: null | string | Json | ReadableStream;
-}
-
 /**
  * Retry plugin
  *
@@ -449,7 +479,7 @@ export type RetryOptions = CustomRetryError & {
 	 */
 	shouldRetry?: (
 		errorType: void | 'ConnectionError' | 'GatewayError' | '429' | 'ServerError',
-		error: ResponseError | ConnectionError | GeneralErrorResponse,
+		error: ExpectedError,
 	) => void | false | string;
 
 	/**
@@ -459,7 +489,7 @@ export type RetryOptions = CustomRetryError & {
 	 */
 	beforeRetry?: (
 		retry: { attempt: number, delay: number },
-		error: ResponseError | ConnectionError | GeneralErrorResponse,
+		error: ExpectedError,
 	) => void | { attempt: number, delay: number };
 
 	/**
@@ -468,7 +498,7 @@ export type RetryOptions = CustomRetryError & {
 	 */
 	onRetry?: (
 		retry: { attempt: number, delay: number },
-		error: ResponseError | ConnectionError | GeneralErrorResponse,
+		error: ExpectedError,
 	) => void;
 
 	/**
