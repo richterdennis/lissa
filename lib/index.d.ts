@@ -85,15 +85,16 @@ export type FetchArguments = {
 	options: Omit<RequestInit, 'headers'> & { headers: Headers },
 };
 
-export type LissaResult = {
+export type ResultData = null | string | Json | File | ReadableStream | Blob;
+
+export type LissaResult<D = ResultData> = {
 	options: LissaOptions;
 	request: FetchArguments;
 	response: Response;
 	headers: Headers;
 	status: number;
-	data: null | string | Json | File | ReadableStream | Blob;
+	data: D;
 };
-
 
 export interface TypeError extends Error {
 	name: 'TypeError';
@@ -142,224 +143,226 @@ export declare class ResponseError extends Error {
 export type ExpectedError = GeneralErrorResponse | ConnectionError | ResponseError;
 export type ThrownError = TypeError | ExpectedError;
 
-export type ResultValue = LissaResult | Exclude<any, undefined>;
+export type ResultValue<D> = LissaResult<D>;
 
 /*
  * Interfaces
  */
 
-export declare class LissaRequest extends Promise<ResultValue> {
+export declare class LissaRequest<RT = ResultValue<ResultData>> extends Promise<RT> {
 	readonly options: LissaOptions;
 
 	/**
 	 * Set a base URL for the request
 	 */
-	baseURL(baseURL: string): LissaRequest;
+	baseURL(baseURL: string): LissaRequest<RT>;
 
 	/**
 	 * Set the request URL
 	 */
-	url(url: string): LissaRequest;
+	url(url: string): LissaRequest<RT>;
 
 	/**
 	 * Set the HTTP method (GET, POST, etc.)
 	 */
-	method(method: HttpMethod): LissaRequest;
+	method(method: HttpMethod): LissaRequest<RT>;
 
 	/**
 	 * Add or override request headers
 	 */
-	headers(headers: HeadersInit): LissaRequest;
+	headers(headers: HeadersInit): LissaRequest<RT>;
 
 	/**
 	 * Provide basic authentication credentials
 	 *
 	 * It sets the "Authorization" header to "Basic base64(username:password)"
 	 */
-	authenticate(username: string, password: string): LissaRequest;
+	authenticate(username: string, password: string): LissaRequest<RT>;
 
 	/**
 	 * Add or override query string parameters
 	 *
 	 * Check the paramsSerializer option to control the serialization of the params
 	 */
-	params(params: Params): LissaRequest;
+	params(params: Params): LissaRequest<RT>;
 
 	/**
 	 * Attach or merge a request body
 	 *
 	 * The body gets json stringified if it is a plain object
 	 */
-	body(body: BodyInit | JsonStringifyableObject): LissaRequest;
+	body(body: BodyInit | JsonStringifyableObject): LissaRequest<RT>;
 
 	/**
 	 * Set request timeout in milliseconds
 	 *
 	 * Attaches an AbortSignal.timeout(...) signal to the request
 	 */
-	timeout(timeout: number): LissaRequest;
+	timeout(timeout: number): LissaRequest<RT>;
 
 	/**
 	 * Attach an AbortSignal to cancel the request
 	 */
-	signal(signal: AbortSignal): LissaRequest;
+	signal(signal: AbortSignal): LissaRequest<RT>;
 
 	/**
 	 * Change the expected response type
 	 */
-	responseType(responseType: 'json' | 'text' | 'file' | 'raw'): LissaRequest;
+	responseType(responseType: 'json' | 'text' | 'file' | 'raw'): LissaRequest<RT>;
 
 	/**
 	 * Add an upload progress listener
 	 */
-	onUploadProgress(onProgress: (uploaded: number, total: number) => void): LissaRequest;
+	onUploadProgress(onProgress: (uploaded: number, total: number) => void): LissaRequest<RT>;
 
 	/**
 	 * Add a download progress listener
 	 */
-	onDownloadProgress(onProgress: (downloaded: number, total: number) => void): LissaRequest;
+	onDownloadProgress(onProgress: (downloaded: number, total: number) => void): LissaRequest<RT>;
 
 	readonly status: 'pending' | 'fulfilled' | 'rejected';
-	readonly value: void | ResultValue;
+	readonly value: void | RT;
 	readonly reason: void | ThrownError;
 
 	on(
 		event: 'resolve',
-		listener: (arg: ResultValue) => void,
-	): LissaRequest;
+		listener: (arg: RT) => void,
+	): LissaRequest<RT>;
 
 	on(
 		event: 'reject',
 		listener: (arg: ThrownError) => void,
-	): LissaRequest;
+	): LissaRequest<RT>;
 
 	on(
 		event: 'settle',
 		listener: (arg: {
 			status: 'fulfilled',
-			value: ResultValue,
+			value: RT,
 			reason: void,
 		} | {
 			status: 'rejected',
 			value: void,
 			reason: ThrownError,
 		}) => void,
-	): LissaRequest;
+	): LissaRequest<RT>;
 
 	off(
 		event: 'resolve' | 'reject' | 'settle',
-		listener: (arg: ResultValue | ThrownError | {
+		listener: (arg: RT | ThrownError | {
 			status: 'fulfilled' | 'rejected',
-			value: void | ResultValue,
+			value: void | RT,
 			reason: void | ThrownError,
 		}) => void,
-	): LissaRequest;
+	): LissaRequest<RT>;
 }
 
-interface MakeRequest {
+interface MakeRequest<RT> {
 
 	/**
 	 * Perform a GET request
 	 */
-	get(
+	get<D = RT extends LissaResult<any> ? ResultData : RT>(
 		url?: string,
 		options?: Omit<LissaOptionsInit, 'method' | 'url'>
-	): LissaRequest;
+	): LissaRequest<RT extends LissaResult<any> ? LissaResult<D> : D>;
 
 	/**
 	 * Perform a POST request with optional body
 	 */
-	post(
+	post<D = RT extends LissaResult<any> ? ResultData : RT>(
 		url?: string,
 		body?: BodyInit | JsonStringifyableObject,
 		options?: Omit<LissaOptionsInit, 'method' | 'url' | 'body'>
-	): LissaRequest;
+	): LissaRequest<RT extends LissaResult<any> ? LissaResult<D> : D>;
 
 	/**
 	 * Perform a PUT request with optional body
 	 */
-	put(
+	put<D = RT extends LissaResult<any> ? ResultData : RT>(
 		url?: string,
 		body?: BodyInit | JsonStringifyableObject,
 		options?: Omit<LissaOptionsInit, 'method' | 'url' | 'body'>
-	): LissaRequest;
+	): LissaRequest<RT extends LissaResult<any> ? LissaResult<D> : D>;
 
 	/**
 	 * Perform a PATCH request with optional body
 	 */
-	patch(
+	patch<D = RT extends LissaResult<any> ? ResultData : RT>(
 		url?: string,
 		body?: BodyInit | JsonStringifyableObject,
 		options?: Omit<LissaOptionsInit, 'method' | 'url' | 'body'>
-	): LissaRequest;
+	): LissaRequest<RT extends LissaResult<any> ? LissaResult<D> : D>;
 
 	/**
 	 * Perform a DELETE request
 	 */
-	delete(
+	delete<D = RT extends LissaResult<any> ? ResultData : RT>(
 		url?: string,
 		options?: Omit<LissaOptionsInit, 'method' | 'url'>
-	): LissaRequest;
+	): LissaRequest<RT extends LissaResult<any> ? LissaResult<D> : D>;
 
 	/**
 	 * Perform a general fetch request.
 	 *
 	 * Specify url, method, body, headers and more in the given options object
 	 */
-	request(options?: LissaOptionsInit): LissaRequest;
+	request<D = RT extends LissaResult<any> ? ResultData : RT>(
+		options?: LissaOptionsInit
+	): LissaRequest<RT extends LissaResult<any> ? LissaResult<D> : D>;
 
 	/**
 	 * Upload a file
 	 */
-	upload(
+	upload<D = RT extends LissaResult<any> ? ResultData : RT>(
 		file: File,
 		url?: string,
 		onProgress?: (uploaded: number, total: number) => void,
 		options?: Omit<LissaOptionsInit, 'url'>,
-	): LissaRequest;
-	upload(
+	): LissaRequest<RT extends LissaResult<any> ? LissaResult<D> : D>;
+	upload<D = RT extends LissaResult<any> ? ResultData : RT>(
 		file: File,
 		url?: string,
 		options?: Omit<LissaOptionsInit, 'url'>,
 		onProgress?: (uploaded: number, total: number) => void,
-	): LissaRequest;
-	upload(
+	): LissaRequest<RT extends LissaResult<any> ? LissaResult<D> : D>;
+	upload<D = RT extends LissaResult<any> ? ResultData : RT>(
 		file: File,
 		onProgress?: (uploaded: number, total: number) => void,
 		options?: LissaOptionsInit,
-	): LissaRequest;
-	upload(
+	): LissaRequest<RT extends LissaResult<any> ? LissaResult<D> : D>;
+	upload<D = RT extends LissaResult<any> ? ResultData : RT>(
 		file: File,
 		options?: LissaOptionsInit,
 		onProgress?: (uploaded: number, total: number) => void,
-	): LissaRequest;
+	): LissaRequest<RT extends LissaResult<any> ? LissaResult<D> : D>;
 
 	/**
 	 * Download a file
 	 */
-	download(
+	download<D = RT extends LissaResult<any> ? File : RT>(
 		url?: string,
 		onProgress?: (downloaded: number, total: number) => void,
 		options?: Omit<LissaOptionsInit, 'url'>,
-	): LissaRequest;
-	download(
+	): LissaRequest<RT extends LissaResult<any> ? LissaResult<D> : D>;
+	download<D = RT extends LissaResult<any> ? File : RT>(
 		url?: string,
 		options?: Omit<LissaOptionsInit, 'url'>,
 		onProgress?: (downloaded: number, total: number) => void,
-	): LissaRequest;
-	download(
+	): LissaRequest<RT extends LissaResult<any> ? LissaResult<D> : D>;
+	download<D = RT extends LissaResult<any> ? File : RT>(
 		onProgress?: (downloaded: number, total: number) => void,
 		options?: LissaOptionsInit,
-	): LissaRequest;
-	download(
+	): LissaRequest<RT extends LissaResult<any> ? LissaResult<D> : D>;
+	download<D = RT extends LissaResult<any> ? File : RT>(
 		options?: LissaOptionsInit,
 		onProgress?: (downloaded: number, total: number) => void,
-	): LissaRequest;
+	): LissaRequest<RT extends LissaResult<any> ? LissaResult<D> : D>;
 }
 
-export type Plugin = (lissa: Lissa) => void;
+export type Plugin<RT> = (lissa: Lissa<RT>) => void;
 
-export interface Lissa extends MakeRequest {
+export interface Lissa<RT = ResultValue<ResultData>> extends MakeRequest<RT> {
 	/**
 	 * Modify the base options directly.
 	 *
@@ -374,21 +377,21 @@ export interface Lissa extends MakeRequest {
 	 * @example
 	 * lissa.use(Lissa.retry());
 	 */
-	use(plugin: Plugin): Lissa;
+	use(plugin: Plugin<RT>): Lissa<RT>;
 
 	/**
 	 * Add a beforeRequest hook into the request cycle.
 	 *
 	 * Modify the given options as argument or return a new options object.
 	 */
-	beforeRequest(hook: (options: LissaOptions) => void | LissaOptions | Promise<void | LissaOptions>): Lissa;
+	beforeRequest(hook: (options: LissaOptions) => void | LissaOptions | Promise<void | LissaOptions>): Lissa<RT>;
 
 	/**
 	 * Add a beforeFetch hook into the request cycle.
 	 *
 	 * Modify the actual fetch arguments or return new arguments.
 	 */
-	beforeFetch(hook: (request: FetchArguments) => void | FetchArguments | Promise<void | FetchArguments>): Lissa;
+	beforeFetch(hook: (request: FetchArguments) => void | FetchArguments | Promise<void | FetchArguments>): Lissa<RT>;
 
 	/**
 	 * Add an onResponse hook into the request cycle.
@@ -397,7 +400,7 @@ export interface Lissa extends MakeRequest {
 	 * stop looping over existing hooks and instantly returns this value (if it
 	 * is an instance of Error it will get thrown).
 	 */
-	onResponse(hook: (result: LissaResult) => void | Exclude<any, undefined> | Promise<void | Exclude<any, undefined>>): Lissa;
+	onResponse<NRT = RT>(hook: (result: RT) => void | NRT | Error | Promise<void | NRT | Error>): Lissa<NRT>;
 
 	/**
 	 * Add an onError hook into the request cycle.
@@ -406,40 +409,40 @@ export interface Lissa extends MakeRequest {
 	 * over existing hooks and instantly returns this value (if it is an instance
 	 * of Error it will get thrown).
 	 */
-	onError(hook: (error: ExpectedError) => void | Exclude<any, undefined> | Promise<void | Exclude<any, undefined>>): Lissa;
+	onError<NRT = RT>(hook: (error: ExpectedError) => void | NRT | Error | Promise<void | NRT | Error>): Lissa<NRT>;
 
 	/**
 	 * Copy the current instance with all its options and hooks.
 	 */
-	extend(options: DefaultOptionsInit): Lissa;
+	extend(options: DefaultOptionsInit): Lissa<RT>;
 
 	/**
 	 * Provide basic authentication credentials
 	 *
 	 * It sets the "Authorization" header to "Basic base64(username:password)"
 	 */
-	authenticate(username: string, password: string): Lissa;
+	authenticate(username: string, password: string): Lissa<RT>;
 }
 
-declare const LissaLib: MakeRequest & NamedExports & {
+declare const LissaLib: MakeRequest<ResultValue<ResultData>> & NamedExports & {
 	/**
 	 * Perform a general fetch request.
 	 *
 	 * Specify method, body, headers and more in the given options object
 	 */
-	(
+	<D = ResultData>(
 		url: string,
 		options?: Omit<LissaOptionsInit, 'url'>
-	): LissaRequest;
+	): LissaRequest<ResultValue<D>>;
 
 	/**
 	 * Create a Lissa instance with the given base options.
 	 */
-	create(options: DefaultOptionsInit): Lissa;
+	create(options: DefaultOptionsInit): Lissa<ResultValue<ResultData>>;
 	create(
 		baseURL?: string,
 		options?: Omit<DefaultOptionsInit, 'baseURL'>
-	): Lissa;
+	): Lissa<ResultValue<ResultData>>;
 };
 
 export default LissaLib;
@@ -454,7 +457,7 @@ export declare const defaults: DefaultOptions;
  *
  * Retry requests on connection errors or server errors
  */
-export declare const retry: (options?: RetryOptions) => Plugin;
+export declare const retry: (options?: RetryOptions) => Plugin<ResultValue<ResultData>>;
 
 export type CustomRetryError = {
 	/** custom retry type have to be returned by shouldRetry hook */
@@ -507,7 +510,7 @@ export type RetryOptions = CustomRetryError & {
 	 */
 	onSuccess?: (
 		retry: { attempt: number, delay: number },
-		res: ResultValue,
+		res: ResultValue<ResultData>,
 	) => void;
 };
 
@@ -516,7 +519,7 @@ export type RetryOptions = CustomRetryError & {
  *
  * Aborts leading or trailing requests to the same endpoint (depends on configured strategy [default is leading])
  */
-export declare const dedupe: (options?: DedupeOptions) => Plugin;
+export declare const dedupe: (options?: DedupeOptions) => Plugin<ResultValue<ResultData>>;
 
 export type DedupeOptions = {
 	/**
