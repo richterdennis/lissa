@@ -135,6 +135,8 @@ Checkout https://developer.mozilla.org/en-US/docs/Web/API/RequestInit for availa
 | paramsSerializer   | "simple", "extended" or Function   | "simple"  | How to serialize the query params
 | urlBuilder         | "simple", "extended" or Function   | "simple"  | How to build the final fetch url from the defined "baseURL" and "url"
 | responseType       | "json", "text", "file" or "raw"    | "json"    | The type of data that the server will respond with
+| replacer           | Function or Array                  | undefined | A function or array to transform values during JSON.stringify
+| reviver            | Function                           | undefined | A function to transform values during JSON.parse
 | timeout            | number                             | undefined | Specify the number of milliseconds before the request gets aborted
 | signal             | AbortSignal                        | undefined | Cancel/Abort running requests
 | body               | object, buffer, stream, file, etc. | undefined | Request body
@@ -149,6 +151,41 @@ Set the urlBuilder option to "simple", "extended" or a custom build function.
 - A custom function will receive url and baseURL, and must return the complete url as string or URL instance
 
 Make sure to not forget a needed slash using "simple". If using "extended" be careful with leading and trailing slashes in urls, the baseURL and also with sub paths in the baseURL. For example `new URL("todos", "http://api.example.com/v2")` and `new URL("/todos", "http://api.example.com/v2/")` both results in a fetch to `"http://api.example.com/todos"`. Only `new URL("todos", "http://api.example.com/v2/")` will result in a fetch to the expected `"http://api.example.com/v2/todos"`.
+
+#### replacer option
+The replacer option allows you to control how values are stringified when sending JSON data. It works exactly like the second parameter of JSON.stringify(). You can provide either a function to transform values or an array to filter properties.
+
+```js
+// Using a function to filter out private properties
+const lissa = Lissa.create({
+  baseURL: "https://api.example.com",
+  replacer: (key, value) => {
+    if (key.startsWith('_')) return undefined; // Exclude private properties
+    return value;
+  }
+});
+```
+
+#### reviver option
+The reviver option allows you to transform values when parsing JSON responses. It works exactly like the second parameter of JSON.parse(). This is particularly useful for converting ISO date strings back into Date objects or handling other custom data types.
+
+```js
+// Using a reviver to convert ISO date strings to Date objects
+const lissa = Lissa.create({
+  baseURL: "https://api.example.com",
+  reviver: (key, value) => {
+    // Check if value is an ISO 8601 date string
+    if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z$/.test(value)) {
+      return new Date(value);
+    }
+    return value;
+  }
+});
+
+const { data } = await lissa.get("/events");
+// data.createdAt is now a Date object instead of a string
+console.log(data.createdAt instanceof Date); // true
+```
 
 ### `result` Object/Error
 
@@ -681,6 +718,69 @@ publicClient.use(Lissa.dedupe());
 ```
 
 See the `examples/` directory for more usage examples, including browser-specific code and advanced plugin usage.
+
+### Using Reviver to Convert Date Strings
+
+A common use case for the reviver function is to automatically convert ISO date strings back into JavaScript Date objects when receiving API responses.
+
+```js
+import Lissa from "lissa";
+
+// Create a reviver function that detects ISO 8601 date strings
+function dateReviver(key, value) {
+  // Pattern to match ISO 8601 date strings like "2026-07-01T12:34:56.789Z"
+  const isoDatePattern = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{3})?Z$/;
+
+  if (typeof value === 'string' && isoDatePattern.test(value)) {
+    return new Date(value);
+  }
+
+  return value;
+}
+
+// Create a Lissa instance with the reviver
+const lissa = Lissa.create({
+  baseURL: "https://api.example.com",
+  reviver: dateReviver
+});
+
+// Example API response that contains date strings:
+// {
+//   "id": 123,
+//   "title": "Meeting",
+//   "createdAt": "2026-07-01T10:00:00.000Z",
+//   "updatedAt": "2026-07-01T15:30:00.000Z",
+//   "participants": [
+//     { "name": "Alice", "joinedAt": "2026-07-01T10:05:00.000Z" },
+//     { "name": "Bob", "joinedAt": "2026-07-01T10:10:00.000Z" }
+//   ]
+// }
+
+const { data: meeting } = await lissa.get("/meetings/123");
+
+// All date strings are automatically converted to Date objects
+console.log(meeting.createdAt instanceof Date); // true
+console.log(meeting.updatedAt instanceof Date); // true
+console.log(meeting.createdAt.toLocaleDateString()); // "7/1/2026"
+
+// Works with nested objects too
+console.log(meeting.participants[0].joinedAt instanceof Date); // true
+
+// You can now use Date methods directly
+const duration = meeting.updatedAt - meeting.createdAt;
+console.log(`Meeting lasted ${duration / 1000 / 60} minutes`);
+
+// The reviver can also be set per-request
+const { data: event } = await lissa.get("/events/456", {
+  reviver: (key, value) => {
+    // Custom reviver for this specific request
+    if (key === "startDate" || key === "endDate") {
+      return new Date(value);
+    }
+    return value;
+  }
+});
+```
 
 ## Browser Support
 

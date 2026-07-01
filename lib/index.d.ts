@@ -53,6 +53,8 @@ export type LissaOptionsInit = Omit<RequestInit, 'method' | 'body'> & {
 	paramsSerializer?: 'simple' | 'extended' | ((params: Params) => string);
 	urlBuilder?: 'simple' | 'extended' | ((url: string, baseURL: string) => string | URL);
 	responseType?: 'json' | 'text' | 'file' | 'raw';
+	replacer?: (this: any, key: string, value: any) => any | (string | number)[];
+	reviver?: (this: any, key: string, value: any) => any;
 	timeout?: number;
 	onUploadProgress?: (uploaded: number, total: number) => void;
 	onDownloadProgress?: (downloaded: number, total: number) => void;
@@ -192,6 +194,20 @@ export declare class LissaRequest<RT = ResultValue<ResultData>> extends Promise<
 	 * The body gets json stringified if it is a plain object
 	 */
 	body(body: BodyInit | JsonStringifyableObject): LissaRequest<RT>;
+
+	/**
+	 * Set a replacer function or array to transform values during JSON.stringify
+	 *
+	 * Works like the second parameter of JSON.stringify()
+	 */
+	replacer(replacer: (this: any, key: string, value: any) => any | (string | number)[]): LissaRequest<RT>;
+
+	/**
+	 * Set a reviver function to transform values during JSON.parse
+	 *
+	 * Works like the second parameter of JSON.parse()
+	 */
+	reviver(reviver: (this: any, key: string, value: any) => any): LissaRequest<RT>;
 
 	/**
 	 * Set request timeout in milliseconds
