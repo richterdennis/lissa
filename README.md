@@ -134,6 +134,7 @@ Checkout https://developer.mozilla.org/en-US/docs/Web/API/RequestInit for availa
 | params             | object                             | {}        | Query params
 | paramsSerializer   | "simple", "extended" or Function   | "simple"  | How to serialize the query params
 | urlBuilder         | "simple", "extended" or Function   | "simple"  | How to build the final fetch url from the defined "baseURL" and "url"
+| rejectUnsafeUrl    | true or Function                   | undefined | Reject unsafe outbound urls
 | responseType       | "json", "text", "file" or "raw"    | "json"    | The type of data that the server will respond with
 | replacer           | Function or Array                  | undefined | A function or array to transform values during JSON.stringify
 | reviver            | Function                           | undefined | A function to transform values during JSON.parse
@@ -151,6 +152,15 @@ Set the urlBuilder option to "simple", "extended" or a custom build function.
 - A custom function will receive url and baseURL, and must return the complete url as string or URL instance
 
 Make sure to not forget a needed slash using "simple". If using "extended" be careful with leading and trailing slashes in urls, the baseURL and also with sub paths in the baseURL. For example `new URL("todos", "http://api.example.com/v2")` and `new URL("/todos", "http://api.example.com/v2/")` both results in a fetch to `"http://api.example.com/todos"`. Only `new URL("todos", "http://api.example.com/v2/")` will result in a fetch to the expected `"http://api.example.com/v2/todos"`.
+
+#### rejectUnsafeUrl option
+The final fetch url will always land in the URL constructor resolving `../` sections. Use `rejectUnsafeUrl` if unvalidated or unsanitized user input reaching or could be reaching a request path. Use `true` to enable it. A generic TypeError will be thrown by default. To throw a custom error, use a custom function. A custom function will receive the complete options object.
+
+What will be rejected:
+- `.` / `..` segments, including their percent-encoded spellings (`%2E`) - the ones url resolution collapses
+- tab, line feed and carriage return - url parsing strips these, but they could hide path resolution syntax
+- `\` - parsers that treat a backslash as a separator
+- `?` / `#` - these truncate the path at resolution time, silently retargeting the request at a shorter route; query params used by the `.params` function or `params: {...}` option are url encoded by default.
 
 #### replacer option
 The replacer option allows you to control how values are stringified when sending JSON data. It works exactly like the second parameter of JSON.stringify(). You can provide either a function to transform values or an array to filter properties.

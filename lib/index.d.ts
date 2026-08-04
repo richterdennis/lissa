@@ -52,6 +52,7 @@ export type LissaOptionsInit = Omit<RequestInit, 'method' | 'body'> & {
 	params?: Params;
 	paramsSerializer?: 'simple' | 'extended' | ((params: Params) => string);
 	urlBuilder?: 'simple' | 'extended' | ((url: string, baseURL: string) => string | URL);
+	rejectUnsafeUrl?: true | ((options: LissaOptions) => any);
 	responseType?: 'json' | 'text' | 'file' | 'raw';
 	replacer?: (this: any, key: string, value: any) => any | (string | number)[];
 	reviver?: (this: any, key: string, value: any) => any;
