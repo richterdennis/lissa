@@ -158,7 +158,7 @@ The final fetch url will always land in the URL constructor resolving `../` sect
 
 What will be rejected:
 - `.` / `..` segments, including their percent-encoded spellings (`%2E`) - the ones url resolution collapses
-- tab, line feed and carriage return - url parsing strips these, but they could hide path resolution syntax
+- tab, line feed, carriage return and ASCII control characters - url parsing strips these, but they could hide path resolution syntax
 - `\` - parsers that treat a backslash as a separator
 - `?` / `#` - these truncate the path at resolution time, silently retargeting the request at a shorter route; query params used by the `.params` function or `params: {...}` option are url encoded by default.
 
